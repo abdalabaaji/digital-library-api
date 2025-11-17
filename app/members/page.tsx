@@ -8,7 +8,7 @@ interface Member {
   name: string;
   email: string;
   phone: string;
-  membershipDate: string;
+  memberSince: string;
 }
 
 export default function MembersPage() {
@@ -22,7 +22,7 @@ export default function MembersPage() {
     name: '',
     email: '',
     phone: '',
-    membershipDate: new Date().toISOString().split('T')[0],
+    memberSince: new Date().toISOString().split('T')[0],
   });
 
   useEffect(() => {
@@ -81,7 +81,13 @@ export default function MembersPage() {
 
   const handleEdit = (member: Member) => {
     setEditingMember(member);
-    setFormData(member);
+    setFormData({
+      id: member.id,
+      name: member.name,
+      email: member.email,
+      phone: member.phone,
+      memberSince: member.memberSince.split('T')[0], // Extract date part from ISO string
+    });
     setShowForm(true);
   };
 
@@ -91,7 +97,7 @@ export default function MembersPage() {
       name: '',
       email: '',
       phone: '',
-      membershipDate: new Date().toISOString().split('T')[0],
+      memberSince: new Date().toISOString().split('T')[0],
     });
     setEditingMember(null);
   };
@@ -181,10 +187,11 @@ export default function MembersPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Membership Date</label>
                 <input
                   type="date"
-                  required
-                  value={formData.membershipDate}
-                  onChange={(e) => setFormData({ ...formData, membershipDate: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  required={!editingMember}
+                  disabled={!!editingMember}
+                  value={formData.memberSince}
+                  onChange={(e) => setFormData({ ...formData, memberSince: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                 />
               </div>
 
@@ -254,7 +261,7 @@ export default function MembersPage() {
                       <td className="py-4 px-4 text-sm text-gray-600">{member.email}</td>
                       <td className="py-4 px-4 text-sm text-gray-600">{member.phone}</td>
                       <td className="py-4 px-4 text-sm text-gray-600">
-                        {new Date(member.membershipDate).toLocaleDateString()}
+                        {new Date(member.memberSince).toLocaleDateString()}
                       </td>
                       <td className="py-4 px-4 text-right">
                         <button
