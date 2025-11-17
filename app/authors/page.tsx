@@ -6,7 +6,7 @@ import { API_BASE_URL } from '../config/api';
 interface Author {
   id: string;
   name: string;
-  bio: string;
+  biography: string;
 }
 
 export default function AuthorsPage() {
@@ -18,7 +18,7 @@ export default function AuthorsPage() {
   const [formData, setFormData] = useState({
     id: '',
     name: '',
-    bio: '',
+    biography: '',
   });
 
   useEffect(() => {
@@ -85,7 +85,7 @@ export default function AuthorsPage() {
     setFormData({
       id: '',
       name: '',
-      bio: '',
+      biography: '',
     });
     setEditingAuthor(null);
   };
@@ -148,8 +148,8 @@ export default function AuthorsPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Biography</label>
                 <textarea
                   required
-                  value={formData.bio}
-                  onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                  value={formData.biography}
+                  onChange={(e) => setFormData({ ...formData, biography: e.target.value })}
                   rows={4}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   placeholder="Enter author's biography"
@@ -211,7 +211,7 @@ export default function AuthorsPage() {
                     </span>
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-3">{author.name}</h3>
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-3">{author.bio}</p>
+                  <p className="text-gray-600 text-sm mb-4 line-clamp-3">{author.biography}</p>
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleEdit(author)}

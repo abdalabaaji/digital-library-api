@@ -5,12 +5,12 @@ import { API_BASE_URL } from '../config/api';
 
 interface Transaction {
   id: string;
-  bookIsbn: string;
+  bookId: string;
   memberId: string;
-  staffId: string;
-  checkoutDate: string;
+  borrowDate: string;
   dueDate: string;
   returnDate: string | null;
+  isReturned: boolean;
 }
 
 interface Book {
@@ -24,25 +24,18 @@ interface Member {
   name: string;
 }
 
-interface Staff {
-  id: string;
-  name: string;
-}
-
 export default function TransactionsPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [books, setBooks] = useState<Book[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
-  const [staff, setStaff] = useState<Staff[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCheckoutForm, setShowCheckoutForm] = useState(false);
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'returned'>('all');
   const [formData, setFormData] = useState({
     id: '',
-    bookIsbn: '',
+    bookId: '',
     memberId: '',
-    staffId: '',
-    checkoutDate: new Date().toISOString().split('T')[0],
+    borrowDate: new Date().toISOString().split('T')[0],
     dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
   });
 
@@ -52,17 +45,15 @@ export default function TransactionsPage() {
 
   const fetchData = async () => {
     try {
-      const [transactionsRes, booksRes, membersRes, staffRes] = await Promise.all([
+      const [transactionsRes, booksRes, membersRes] = await Promise.all([
         fetch(`${API_BASE_URL}/api/transactions`),
         fetch(`${API_BASE_URL}/api/books`),
         fetch(`${API_BASE_URL}/api/members`),
-        fetch(`${API_BASE_URL}/api/staff`),
       ]);
 
       setTransactions(await transactionsRes.json());
       setBooks(await booksRes.json());
       setMembers(await membersRes.json());
-      setStaff(await staffRes.json());
     } catch (error) {
       console.error('Failed to fetch data:', error);
     } finally {
@@ -113,10 +104,9 @@ export default function TransactionsPage() {
   const resetForm = () => {
     setFormData({
       id: '',
-      bookIsbn: '',
+      bookId: '',
       memberId: '',
-      staffId: '',
-      checkoutDate: new Date().toISOString().split('T')[0],
+      borrowDate: new Date().toISOString().split('T')[0],
       dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     });
   };
@@ -135,11 +125,6 @@ export default function TransactionsPage() {
   const getMemberName = (id: string) => {
     const member = members.find((m) => m.id === id);
     return member?.name || 'Unknown Member';
-  };
-
-  const getStaffName = (id: string) => {
-    const staffMember = staff.find((s) => s.id === id);
-    return staffMember?.name || 'Unknown Staff';
   };
 
   const isOverdue = (dueDate: string, returnDate: string | null) => {
@@ -190,8 +175,8 @@ export default function TransactionsPage() {
                 </label>
                 <select
                   required
-                  value={formData.bookIsbn}
-                  onChange={(e) => setFormData({ ...formData, bookIsbn: e.target.value })}
+                  value={formData.bookId}
+                  onChange={(e) => setFormData({ ...formData, bookId: e.target.value })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                 >
                   <option value="">Select a book</option>
@@ -221,29 +206,12 @@ export default function TransactionsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Staff</label>
-                <select
-                  required
-                  value={formData.staffId}
-                  onChange={(e) => setFormData({ ...formData, staffId: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                >
-                  <option value="">Select staff</option>
-                  {staff.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.name} ({s.id})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Checkout Date</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Borrow Date</label>
                 <input
                   type="date"
                   required
-                  value={formData.checkoutDate}
-                  onChange={(e) => setFormData({ ...formData, checkoutDate: e.target.value })}
+                  value={formData.borrowDate}
+                  onChange={(e) => setFormData({ ...formData, borrowDate: e.target.value })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                 />
               </div>
@@ -331,8 +299,7 @@ export default function TransactionsPage() {
                     <th className="text-left py-4 px-4 font-semibold text-gray-700">ID</th>
                     <th className="text-left py-4 px-4 font-semibold text-gray-700">Book</th>
                     <th className="text-left py-4 px-4 font-semibold text-gray-700">Member</th>
-                    <th className="text-left py-4 px-4 font-semibold text-gray-700">Staff</th>
-                    <th className="text-left py-4 px-4 font-semibold text-gray-700">Checkout</th>
+                    <th className="text-left py-4 px-4 font-semibold text-gray-700">Borrow Date</th>
                     <th className="text-left py-4 px-4 font-semibold text-gray-700">Due Date</th>
                     <th className="text-left py-4 px-4 font-semibold text-gray-700">Status</th>
                     <th className="text-right py-4 px-4 font-semibold text-gray-700">Actions</th>
@@ -347,16 +314,13 @@ export default function TransactionsPage() {
                           {transaction.id}
                         </td>
                         <td className="py-4 px-4 text-sm text-gray-600">
-                          {getBookTitle(transaction.bookIsbn)}
+                          {getBookTitle(transaction.bookId)}
                         </td>
                         <td className="py-4 px-4 text-sm text-gray-600">
                           {getMemberName(transaction.memberId)}
                         </td>
                         <td className="py-4 px-4 text-sm text-gray-600">
-                          {getStaffName(transaction.staffId)}
-                        </td>
-                        <td className="py-4 px-4 text-sm text-gray-600">
-                          {new Date(transaction.checkoutDate).toLocaleDateString()}
+                          {new Date(transaction.borrowDate).toLocaleDateString()}
                         </td>
                         <td className="py-4 px-4 text-sm text-gray-600">
                           {new Date(transaction.dueDate).toLocaleDateString()}
