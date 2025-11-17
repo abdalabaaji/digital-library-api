@@ -26,13 +26,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Remove password from response
+    // Remove password from response and return staff object directly
     const { password: _, ...staffWithoutPassword } = staff;
 
-    return NextResponse.json({
-      message: 'Login successful',
-      staff: staffWithoutPassword,
-    });
+    return NextResponse.json(staffWithoutPassword);
   } catch (error) {
     console.error('Error during login:', error);
     return NextResponse.json(
