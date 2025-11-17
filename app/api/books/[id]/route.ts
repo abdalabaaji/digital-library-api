@@ -4,11 +4,12 @@ import prisma from '@/lib/prisma';
 // GET /api/books/:id - Get book by ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const book = await prisma.book.findUnique({
-      where: { id: params.id },
+      where: { id: id },
       include: {
         author: true,
         transactions: {
@@ -39,8 +40,9 @@ export async function GET(
 // PUT /api/books/:id - Update book
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const body = await request.json();
     const {
@@ -78,7 +80,7 @@ export async function PUT(
     }
 
     const book = await prisma.book.update({
-      where: { id: params.id },
+      where: { id: id },
       data: {
         title,
         authorId,
@@ -121,11 +123,12 @@ export async function PUT(
 // DELETE /api/books/:id - Delete book
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     await prisma.book.delete({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     return NextResponse.json({ message: 'Book deleted successfully' });

@@ -4,11 +4,12 @@ import prisma from '@/lib/prisma';
 // GET /api/members/:id - Get member by ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const member = await prisma.member.findUnique({
-      where: { id: params.id },
+      where: { id: id },
       include: {
         transactions: {
           include: {
@@ -42,8 +43,9 @@ export async function GET(
 // PUT /api/members/:id - Update member
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const body = await request.json();
     const { name, email, phone, memberType, memberSince, profileImageUrl } = body;
@@ -56,7 +58,7 @@ export async function PUT(
     }
 
     const member = await prisma.member.update({
-      where: { id: params.id },
+      where: { id: id },
       data: {
         name,
         email,
@@ -92,11 +94,12 @@ export async function PUT(
 // DELETE /api/members/:id - Delete member
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     await prisma.member.delete({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     return NextResponse.json({ message: 'Member deleted successfully' });

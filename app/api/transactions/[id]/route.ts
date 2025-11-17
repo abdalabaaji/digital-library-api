@@ -4,11 +4,12 @@ import prisma from '@/lib/prisma';
 // GET /api/transactions/:id - Get transaction by ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const transaction = await prisma.transaction.findUnique({
-      where: { id: params.id },
+      where: { id: id },
       include: {
         member: true,
         book: {
@@ -39,8 +40,9 @@ export async function GET(
 // PUT /api/transactions/:id - Update transaction
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const body = await request.json();
     const { memberId, bookId, borrowDate, dueDate, returnDate, isReturned } = body;
@@ -54,7 +56,7 @@ export async function PUT(
 
     // Get current transaction
     const currentTransaction = await prisma.transaction.findUnique({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     if (!currentTransaction) {
@@ -65,7 +67,7 @@ export async function PUT(
     }
 
     const transaction = await prisma.transaction.update({
-      where: { id: params.id },
+      where: { id: id },
       data: {
         memberId,
         bookId,
@@ -116,11 +118,12 @@ export async function PUT(
 // DELETE /api/transactions/:id - Delete transaction
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const transaction = await prisma.transaction.findUnique({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     if (!transaction) {
@@ -131,7 +134,7 @@ export async function DELETE(
     }
 
     await prisma.transaction.delete({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     // If transaction was not returned, make book available again
