@@ -107,7 +107,17 @@ export default function BooksPage() {
 
   const handleEdit = (book: Book) => {
     setEditingBook(book);
-    setFormData(book);
+    setFormData({
+      id: book.id,
+      title: book.title,
+      category: book.category,
+      publishedYear: book.publishedYear,
+      isAvailable: book.isAvailable,
+      authorId: book.authorId,
+      isbn: book.isbn || '',
+      pageCount: book.pageCount || 0,
+      publisher: book.publisher || '',
+    });
     setShowForm(true);
   };
 
