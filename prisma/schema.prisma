@@ -1,0 +1,94 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRES_PRISMA_URL")
+}
+
+model Author {
+  id              String   @id
+  name            String
+  profileImageUrl String?
+  biography       String?  @db.Text
+  birthYear       Int?
+  books           Book[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("authors")
+}
+
+model Book {
+  id              String        @id
+  title           String
+  authorId        String
+  author          Author        @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  publishedYear   Int
+  category        String
+  isAvailable     Boolean       @default(true)
+  coverImageUrl   String?
+  description     String?       @db.Text
+  pageCount       Int
+  isbn            String        @unique
+  publisher       String
+  transactions    Transaction[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([authorId])
+  @@index([category])
+  @@map("books")
+}
+
+model Member {
+  id              String        @id
+  name            String
+  email           String        @unique
+  phone           String
+  memberType      String // 'student' or 'faculty'
+  memberSince     DateTime
+  profileImageUrl String?
+  transactions    Transaction[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([memberType])
+  @@map("members")
+}
+
+model Staff {
+  staffId   String   @id
+  username  String   @unique
+  password  String // Note: In production, this should be hashed!
+  fullName  String
+  role      String // 'admin', 'librarian', 'staff'
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([role])
+  @@map("staff")
+}
+
+model Transaction {
+  id          String    @id
+  memberId    String
+  member      Member    @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  bookId      String
+  book        Book      @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  borrowDate  DateTime
+  dueDate     DateTime
+  returnDate  DateTime?
+  isReturned  Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([memberId])
+  @@index([bookId])
+  @@index([isReturned])
+  @@map("transactions")
+}
