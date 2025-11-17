@@ -27,7 +27,7 @@ export default function AuthorsPage() {
 
   const fetchAuthors = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/authors`);
+      const response = await fetch(`${API_BASE_URL}/api/authors`);
       const data = await response.json();
       setAuthors(data);
     } catch (error) {
@@ -39,7 +39,7 @@ export default function AuthorsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const url = editingAuthor ? `${API_BASE_URL}/authors/${editingAuthor.id}` : `${API_BASE_URL}/authors`;
+    const url = editingAuthor ? `${API_BASE_URL}/api/authors/${editingAuthor.id}` : `${API_BASE_URL}/api/authors`;
     const method = editingAuthor ? 'PUT' : 'POST';
 
     try {
@@ -63,7 +63,7 @@ export default function AuthorsPage() {
     if (!confirm('Are you sure you want to delete this author?')) return;
 
     try {
-      const response = await fetch(`${API_BASE_URL}/authors/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/authors/${id}`, {
         method: 'DELETE',
       });
 

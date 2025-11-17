@@ -4,12 +4,16 @@ import { useEffect, useState } from 'react';
 import { API_BASE_URL } from '../config/api';
 
 interface Book {
-  isbn: string;
+  id: string;
   title: string;
-  genre: string;
-  publicationYear: number;
+  category: string;
+  publishedYear: number;
   isAvailable: boolean;
   authorId: string;
+  isbn?: string;
+  pageCount?: number;
+  publisher?: string;
+  description?: string;
 }
 
 interface Author {
@@ -25,12 +29,15 @@ export default function BooksPage() {
   const [editingBook, setEditingBook] = useState<Book | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [formData, setFormData] = useState({
-    isbn: '',
+    id: '',
     title: '',
-    genre: '',
-    publicationYear: new Date().getFullYear(),
+    category: '',
+    publishedYear: new Date().getFullYear(),
     isAvailable: true,
     authorId: '',
+    isbn: '',
+    pageCount: 0,
+    publisher: '',
   });
 
   useEffect(() => {
@@ -40,7 +47,7 @@ export default function BooksPage() {
 
   const fetchBooks = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/books`);
+      const response = await fetch(`${API_BASE_URL}/api/books`);
       const data = await response.json();
       setBooks(data);
     } catch (error) {
@@ -52,7 +59,7 @@ export default function BooksPage() {
 
   const fetchAuthors = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/authors`);
+      const response = await fetch(`${API_BASE_URL}/api/authors`);
       const data = await response.json();
       setAuthors(data);
     } catch (error) {
@@ -62,7 +69,7 @@ export default function BooksPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const url = editingBook ? `${API_BASE_URL}/books/${editingBook.isbn}` : `${API_BASE_URL}/books`;
+    const url = editingBook ? `${API_BASE_URL}/api/books/${editingBook.id}` : `${API_BASE_URL}/api/books`;
     const method = editingBook ? 'PUT' : 'POST';
 
     try {
@@ -82,11 +89,11 @@ export default function BooksPage() {
     }
   };
 
-  const handleDelete = async (isbn: string) => {
+  const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this book?')) return;
 
     try {
-      const response = await fetch(`${API_BASE_URL}/books/${isbn}`, {
+      const response = await fetch(`${API_BASE_URL}/api/books/${id}`, {
         method: 'DELETE',
       });
 
@@ -106,12 +113,15 @@ export default function BooksPage() {
 
   const resetForm = () => {
     setFormData({
-      isbn: '',
+      id: '',
       title: '',
-      genre: '',
-      publicationYear: new Date().getFullYear(),
+      category: '',
+      publishedYear: new Date().getFullYear(),
       isAvailable: true,
       authorId: '',
+      isbn: '',
+      pageCount: 0,
+      publisher: '',
     });
     setEditingBook(null);
   };
@@ -119,8 +129,8 @@ export default function BooksPage() {
   const filteredBooks = books.filter(
     (book) =>
       book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      book.genre.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      book.isbn.includes(searchQuery)
+      book.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (book.isbn && book.isbn.includes(searchQuery))
   );
 
   return (
@@ -149,15 +159,15 @@ export default function BooksPage() {
             </h2>
             <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">ISBN</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Book ID</label>
                 <input
                   type="text"
                   required
                   disabled={!!editingBook}
-                  value={formData.isbn}
-                  onChange={(e) => setFormData({ ...formData, isbn: e.target.value })}
+                  value={formData.id}
+                  onChange={(e) => setFormData({ ...formData, id: e.target.value })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="978-3-16-148410-0"
+                  placeholder="book001"
                 />
               </div>
 
@@ -174,24 +184,24 @@ export default function BooksPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Genre</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
                 <input
                   type="text"
                   required
-                  value={formData.genre}
-                  onChange={(e) => setFormData({ ...formData, genre: e.target.value })}
+                  value={formData.category}
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Fiction, Science, etc."
+                  placeholder="Computer Science, Fiction, etc."
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Publication Year</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Published Year</label>
                 <input
                   type="number"
                   required
-                  value={formData.publicationYear}
-                  onChange={(e) => setFormData({ ...formData, publicationYear: parseInt(e.target.value) })}
+                  value={formData.publishedYear}
+                  onChange={(e) => setFormData({ ...formData, publishedYear: parseInt(e.target.value) })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   min="1000"
                   max={new Date().getFullYear()}
@@ -273,9 +283,9 @@ export default function BooksPage() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b-2 border-gray-200">
-                    <th className="text-left py-4 px-4 font-semibold text-gray-700">ISBN</th>
+                    <th className="text-left py-4 px-4 font-semibold text-gray-700">ID</th>
                     <th className="text-left py-4 px-4 font-semibold text-gray-700">Title</th>
-                    <th className="text-left py-4 px-4 font-semibold text-gray-700">Genre</th>
+                    <th className="text-left py-4 px-4 font-semibold text-gray-700">Category</th>
                     <th className="text-left py-4 px-4 font-semibold text-gray-700">Year</th>
                     <th className="text-left py-4 px-4 font-semibold text-gray-700">Author</th>
                     <th className="text-left py-4 px-4 font-semibold text-gray-700">Status</th>
@@ -286,11 +296,11 @@ export default function BooksPage() {
                   {filteredBooks.map((book) => {
                     const author = authors.find((a) => a.id === book.authorId);
                     return (
-                      <tr key={book.isbn} className="border-b border-gray-100 hover:bg-gray-50">
-                        <td className="py-4 px-4 text-sm text-gray-600">{book.isbn}</td>
+                      <tr key={book.id} className="border-b border-gray-100 hover:bg-gray-50">
+                        <td className="py-4 px-4 text-sm text-gray-600">{book.id}</td>
                         <td className="py-4 px-4 font-medium text-gray-900">{book.title}</td>
-                        <td className="py-4 px-4 text-sm text-gray-600">{book.genre}</td>
-                        <td className="py-4 px-4 text-sm text-gray-600">{book.publicationYear}</td>
+                        <td className="py-4 px-4 text-sm text-gray-600">{book.category}</td>
+                        <td className="py-4 px-4 text-sm text-gray-600">{book.publishedYear}</td>
                         <td className="py-4 px-4 text-sm text-gray-600">{author?.name || 'Unknown'}</td>
                         <td className="py-4 px-4">
                           <span
@@ -311,7 +321,7 @@ export default function BooksPage() {
                             Edit
                           </button>
                           <button
-                            onClick={() => handleDelete(book.isbn)}
+                            onClick={() => handleDelete(book.id)}
                             className="text-red-600 hover:text-red-800 font-medium"
                           >
                             Delete

@@ -31,7 +31,7 @@ export default function MembersPage() {
 
   const fetchMembers = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/members`);
+      const response = await fetch(`${API_BASE_URL}/api/members`);
       const data = await response.json();
       setMembers(data);
     } catch (error) {
@@ -43,7 +43,7 @@ export default function MembersPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const url = editingMember ? `${API_BASE_URL}/members/${editingMember.id}` : `${API_BASE_URL}/members`;
+    const url = editingMember ? `${API_BASE_URL}/api/members/${editingMember.id}` : `${API_BASE_URL}/api/members`;
     const method = editingMember ? 'PUT' : 'POST';
 
     try {
@@ -67,7 +67,7 @@ export default function MembersPage() {
     if (!confirm('Are you sure you want to delete this member?')) return;
 
     try {
-      const response = await fetch(`${API_BASE_URL}/members/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/members/${id}`, {
         method: 'DELETE',
       });
 

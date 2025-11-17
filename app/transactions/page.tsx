@@ -14,7 +14,7 @@ interface Transaction {
 }
 
 interface Book {
-  isbn: string;
+  id: string;
   title: string;
   isAvailable: boolean;
 }
@@ -53,10 +53,10 @@ export default function TransactionsPage() {
   const fetchData = async () => {
     try {
       const [transactionsRes, booksRes, membersRes, staffRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/transactions`),
-        fetch(`${API_BASE_URL}/books`),
-        fetch(`${API_BASE_URL}/members`),
-        fetch(`${API_BASE_URL}/staff`),
+        fetch(`${API_BASE_URL}/api/transactions`),
+        fetch(`${API_BASE_URL}/api/books`),
+        fetch(`${API_BASE_URL}/api/members`),
+        fetch(`${API_BASE_URL}/api/staff`),
       ]);
 
       setTransactions(await transactionsRes.json());
@@ -74,7 +74,7 @@ export default function TransactionsPage() {
     e.preventDefault();
 
     try {
-      const response = await fetch(`${API_BASE_URL}/transactions`, {
+      const response = await fetch(`${API_BASE_URL}/api/transactions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -94,7 +94,7 @@ export default function TransactionsPage() {
     if (!confirm('Mark this book as returned?')) return;
 
     try {
-      const response = await fetch(`${API_BASE_URL}/transactions/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/transactions/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -127,8 +127,8 @@ export default function TransactionsPage() {
     return true;
   });
 
-  const getBookTitle = (isbn: string) => {
-    const book = books.find((b) => b.isbn === isbn);
+  const getBookTitle = (bookId: string) => {
+    const book = books.find((b) => b.id === bookId);
     return book?.title || 'Unknown Book';
   };
 
@@ -196,8 +196,8 @@ export default function TransactionsPage() {
                 >
                   <option value="">Select a book</option>
                   {availableBooks.map((book) => (
-                    <option key={book.isbn} value={book.isbn}>
-                      {book.title} ({book.isbn})
+                    <option key={book.id} value={book.id}>
+                      {book.title} ({book.id})
                     </option>
                   ))}
                 </select>

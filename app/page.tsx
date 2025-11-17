@@ -28,10 +28,10 @@ export default function Dashboard() {
     const fetchStats = async () => {
       try {
         const [booksRes, authorsRes, membersRes, transactionsRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/books`),
-          fetch(`${API_BASE_URL}/authors`),
-          fetch(`${API_BASE_URL}/members`),
-          fetch(`${API_BASE_URL}/transactions`),
+          fetch(`${API_BASE_URL}/api/books`),
+          fetch(`${API_BASE_URL}/api/authors`),
+          fetch(`${API_BASE_URL}/api/members`),
+          fetch(`${API_BASE_URL}/api/transactions`),
         ]);
 
         const books = await booksRes.json();
