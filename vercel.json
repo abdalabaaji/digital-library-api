@@ -1,6 +1,3 @@
 {
-  "buildCommand": "npx prisma generate && next build",
-  "env": {
-    "POSTGRES_PRISMA_URL": "@postgres_prisma_url"
-  }
+  "buildCommand": "npx prisma generate && next build"
 }
