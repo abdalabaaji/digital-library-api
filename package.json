@@ -13,11 +13,15 @@
     "prisma:seed": "tsx prisma/seed.ts",
     "prisma:studio": "prisma studio"
   },
-  "keywords": ["rest-api", "digital-library", "cmps312"],
+  "keywords": [
+    "rest-api",
+    "digital-library",
+    "cmps312"
+  ],
   "author": "CMPS312 Team",
   "license": "MIT",
   "dependencies": {
-    "@prisma/client": "^6.1.0",
+    "@prisma/client": "^6.19.0",
     "@types/node": "^24.10.0",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
@@ -30,7 +34,7 @@
     "@tailwindcss/postcss": "^4.1.17",
     "autoprefixer": "^10.4.21",
     "postcss": "^8.5.6",
-    "prisma": "^6.1.0",
+    "prisma": "^6.19.0",
     "tailwindcss": "^4.1.17",
     "tsx": "^4.20.6"
   }
