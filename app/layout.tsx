@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import Navigation from "./components/Navigation";
 
 export const metadata: Metadata = {
-  title: "Digital Library API Documentation",
-  description: "RESTful API for Digital Library Management System - CMPS312 Assignment 4",
+  title: "Digital Library Management System",
+  description: "Complete Digital Library Management System with API - CMPS312 Assignment 4",
 };
 
 export default function RootLayout({
@@ -13,7 +14,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body suppressHydrationWarning>
+        <Navigation />
+        {children}
+      </body>
     </html>
   );
 }

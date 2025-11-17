@@ -1,873 +1,198 @@
-export default function Home() {
+'use client';
+
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { API_BASE_URL } from './config/api';
+
+interface Stats {
+  books: number;
+  authors: number;
+  members: number;
+  transactions: number;
+  availableBooks: number;
+  borrowedBooks: number;
+}
+
+export default function Dashboard() {
+  const [stats, setStats] = useState<Stats>({
+    books: 0,
+    authors: 0,
+    members: 0,
+    transactions: 0,
+    availableBooks: 0,
+    borrowedBooks: 0,
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const [booksRes, authorsRes, membersRes, transactionsRes] = await Promise.all([
+          fetch(`${API_BASE_URL}/books`),
+          fetch(`${API_BASE_URL}/authors`),
+          fetch(`${API_BASE_URL}/members`),
+          fetch(`${API_BASE_URL}/transactions`),
+        ]);
+
+        const books = await booksRes.json();
+        const authors = await authorsRes.json();
+        const members = await membersRes.json();
+        const transactions = await transactionsRes.json();
+
+        const availableBooks = books.filter((b: any) => b.isAvailable).length;
+        const borrowedBooks = books.length - availableBooks;
+
+        setStats({
+          books: books.length,
+          authors: authors.length,
+          members: members.length,
+          transactions: transactions.length,
+          availableBooks,
+          borrowedBooks,
+        });
+      } catch (error) {
+        console.error('Failed to fetch stats:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
+  const statCards = [
+    { title: 'Total Books', value: stats.books, icon: '📚', color: 'from-blue-500 to-blue-600', link: '/books' },
+    { title: 'Authors', value: stats.authors, icon: '👤', color: 'from-green-500 to-green-600', link: '/authors' },
+    { title: 'Members', value: stats.members, icon: '👥', color: 'from-purple-500 to-purple-600', link: '/members' },
+    { title: 'Transactions', value: stats.transactions, icon: '🔄', color: 'from-orange-500 to-orange-600', link: '/transactions' },
+    { title: 'Available Books', value: stats.availableBooks, icon: '✅', color: 'from-teal-500 to-teal-600', link: '/books' },
+    { title: 'Borrowed Books', value: stats.borrowedBooks, icon: '📖', color: 'from-pink-500 to-pink-600', link: '/transactions' },
+  ];
+
+  const quickActions = [
+    { title: 'Add New Book', icon: '➕📚', color: 'bg-blue-500', link: '/books' },
+    { title: 'Add Author', icon: '➕👤', color: 'bg-green-500', link: '/authors' },
+    { title: 'Register Member', icon: '➕👥', color: 'bg-purple-500', link: '/members' },
+    { title: 'New Transaction', icon: '➕🔄', color: 'bg-orange-500', link: '/transactions' },
+  ];
+
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto bg-white shadow-2xl rounded-2xl p-10 border border-gray-100">
-        {/* Header Section */}
-        <div className="mb-10 pb-6 border-b-2 border-gray-100">
-          <h1 className="text-5xl font-bold text-gray-900 mb-3 tracking-tight">Digital Library API</h1>
-          <p className="text-base text-blue-600 font-semibold mb-3">CMPS312 Assignment 4 • Qatar University</p>
-          <p className="text-gray-600 leading-relaxed">
-            A comprehensive RESTful API for managing a digital library system with books, authors, members, staff, and transactions. Built with Next.js 15, PostgreSQL, and Prisma ORM.
+    <main className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Hero Section */}
+        <div className="mb-12 text-center">
+          <h1 className="text-5xl font-bold text-gray-900 mb-4">
+            Welcome to Digital Library
+          </h1>
+          <p className="text-xl text-gray-600">
+            Manage your complete library system with ease
           </p>
         </div>
 
-        {/* Base URL Section */}
-        <section className="mb-12">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-5 flex items-center gap-2">
-            <span className="text-2xl">🌐</span>
-            Base URL
-          </h2>
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-5 font-mono text-sm hover:shadow-md transition-shadow duration-200">
-            <p className="text-sm text-gray-600 mb-1 font-sans">Production API Endpoint</p>
-            <p className="text-blue-700 font-semibold text-lg">https://digital-library-api.vercel.app</p>
+        {/* Statistics Cards */}
+        <div className="mb-12">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Library Statistics</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {statCards.map((stat, index) => (
+              <Link
+                key={index}
+                href={stat.link}
+                className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className={`text-5xl p-4 bg-gradient-to-r ${stat.color} rounded-2xl shadow-md`}>
+                    {stat.icon}
+                  </div>
+                  <div className="text-right">
+                    <p className="text-gray-600 text-sm font-medium">{stat.title}</p>
+                    <p className={`text-4xl font-bold bg-gradient-to-r ${stat.color} text-transparent bg-clip-text`}>
+                      {loading ? '...' : stat.value}
+                    </p>
+                  </div>
+                </div>
+              </Link>
+            ))}
           </div>
-        </section>
+        </div>
 
-        {/* How to Use cURL */}
-        <section className="mb-12 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl p-8">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            <span className="text-2xl">📖</span>
-            How to Use cURL
-          </h2>
-          <div className="space-y-4">
-            <p className="text-gray-700 leading-relaxed">
-              <strong>cURL</strong> is a command-line tool for making HTTP requests. It comes pre-installed on macOS, Linux, and Windows 10+.
-              Use it to test API endpoints directly from your terminal.
+        {/* Quick Actions */}
+        <div className="mb-12">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Quick Actions</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {quickActions.map((action, index) => (
+              <Link
+                key={index}
+                href={action.link}
+                className={`${action.color} text-white rounded-xl p-6 hover:shadow-lg transition-all duration-300 transform hover:scale-105`}
+              >
+                <div className="text-4xl mb-3">{action.icon}</div>
+                <p className="font-semibold text-lg">{action.title}</p>
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        {/* Feature Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Books Management */}
+          <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+            <div className="text-5xl mb-4">📚</div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-3">Books Management</h3>
+            <p className="text-gray-600 mb-4">
+              Add, edit, and manage your entire book collection with detailed information.
             </p>
-
-            <div className="bg-white rounded-lg p-5 border border-green-200">
-              <h3 className="font-bold text-gray-800 mb-3">Basic Usage:</h3>
-              <ul className="space-y-2 text-gray-700">
-                <li className="flex gap-2">
-                  <span className="text-green-600 font-bold">•</span>
-                  <span><strong>GET Request:</strong> Simply copy and paste the cURL command in your terminal</span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="text-green-600 font-bold">•</span>
-                  <span><strong>POST/PUT Requests:</strong> Include the <code className="bg-gray-100 px-2 py-1 rounded text-sm">-d</code> flag with JSON data</span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="text-green-600 font-bold">•</span>
-                  <span><strong>Headers:</strong> Use <code className="bg-gray-100 px-2 py-1 rounded text-sm">-H</code> to specify Content-Type and other headers</span>
-                </li>
-              </ul>
-            </div>
-
-            <div className="bg-white rounded-lg p-5 border border-green-200">
-              <h3 className="font-bold text-gray-800 mb-3">Quick Example:</h3>
-              <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-                <pre className="text-green-400 text-sm">{`# Open your terminal and run:
-curl -X GET https://digital-library-api.vercel.app/api/authors
-
-# You'll see JSON response with all authors!`}</pre>
-              </div>
-            </div>
-
-            <div className="bg-blue-100 border-l-4 border-blue-500 p-4 rounded">
-              <p className="text-blue-900 text-sm">
-                <strong>💡 Tip:</strong> For better formatting, pipe the output through <code className="bg-blue-200 px-2 py-1 rounded">jq</code> or
-                use <code className="bg-blue-200 px-2 py-1 rounded">| python -m json.tool</code> to pretty-print JSON responses.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* Authentication */}
-        <section className="mb-12">
-          <h2 className="text-3xl font-semibold text-gray-800 mb-6 pb-3 border-b-2 border-purple-500 flex items-center gap-3">
-            <span className="text-3xl">🔐</span>
-            Authentication
-          </h2>
-
-          <div className="mb-8 p-6 bg-gray-50 rounded-xl border border-gray-200 hover:shadow-lg transition-all duration-200">
-            <div className="flex items-center gap-3 mb-4">
-              <span className="bg-blue-500 text-white px-4 py-1.5 rounded-lg font-bold text-sm shadow-sm">POST</span>
-              <code className="text-lg font-mono text-gray-800 bg-white px-3 py-1 rounded border border-gray-200">/api/auth</code>
-            </div>
-            <p className="text-gray-700 mb-4 leading-relaxed">Authenticate staff member with username and password</p>
-
-            <div className="bg-gray-900 rounded-xl p-5 overflow-x-auto mb-4 shadow-inner">
-              <p className="text-gray-400 text-xs mb-3 uppercase tracking-wide font-semibold">Request Body:</p>
-              <pre className="text-yellow-400 text-sm leading-relaxed">{`{
-  "username": "admin",
-  "password": "admin123"
-}`}</pre>
-            </div>
-
-            <div className="bg-gray-900 rounded-xl p-5 overflow-x-auto mb-4 shadow-inner">
-              <p className="text-gray-400 text-xs mb-3 uppercase tracking-wide font-semibold">Response (200 OK):</p>
-              <pre className="text-green-400 text-sm leading-relaxed">{`{
-  "staffId": "S001",
-  "username": "admin",
-  "fullName": "Admin User",
-  "role": "admin"
-}`}</pre>
-            </div>
-
-            <div className="bg-gradient-to-r from-blue-50 to-cyan-50 border-2 border-blue-200 rounded-xl p-5">
-              <p className="text-blue-900 font-bold text-sm mb-3 flex items-center gap-2">
-                <span>💻</span>
-                cURL Example:
-              </p>
-              <pre className="text-sm text-gray-800 overflow-x-auto leading-relaxed">{`curl -X POST https://digital-library-api.vercel.app/api/auth \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "username": "admin",
-    "password": "admin123"
-  }'`}</pre>
-            </div>
-          </div>
-        </section>
-
-        {/* Authors Endpoints */}
-        <section className="mb-12">
-          <h2 className="text-3xl font-semibold text-gray-800 mb-6 pb-3 border-b-2 border-blue-500 flex items-center gap-3">
-            <span className="text-3xl">👤</span>
-            Authors Endpoints
-          </h2>
-
-          {/* GET all authors */}
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-3">
-              <span className="bg-green-100 text-green-800 px-3 py-1 rounded font-semibold text-sm">GET</span>
-              <code className="text-lg font-mono text-gray-700">/api/authors</code>
-            </div>
-            <p className="text-gray-600 mb-3">Get all authors in the library</p>
-
-            <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-              <p className="text-gray-400 text-xs mb-2">Response (200 OK):</p>
-              <pre className="text-green-400 text-sm">{`[
-  {
-    "id": "auth001",
-    "name": "J.K. Rowling",
-    "biography": "British author...",
-    "birthYear": 1965
-  }
-]`}</pre>
-            </div>
-
-            <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <p className="text-blue-900 font-semibold text-sm mb-2">💻 cURL Example:</p>
-              <pre className="text-sm text-gray-800 overflow-x-auto">{`curl -X GET https://digital-library-api.vercel.app/api/authors`}</pre>
-            </div>
+            <Link
+              href="/books"
+              className="inline-block bg-blue-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-600 transition"
+            >
+              Manage Books →
+            </Link>
           </div>
 
-          {/* GET author by ID */}
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-3">
-              <span className="bg-green-100 text-green-800 px-3 py-1 rounded font-semibold text-sm">GET</span>
-              <code className="text-lg font-mono text-gray-700">/api/authors/:id</code>
-            </div>
-            <p className="text-gray-600 mb-3">Get a specific author by ID</p>
-
-            <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-              <p className="text-gray-400 text-xs mb-2">Response (200 OK):</p>
-              <pre className="text-green-400 text-sm">{`{
-  "id": "auth001",
-  "name": "J.K. Rowling",
-  "biography": "British author...",
-  "birthYear": 1965
-}`}</pre>
-            </div>
-          </div>
-
-          {/* POST author */}
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-3">
-              <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded font-semibold text-sm">POST</span>
-              <code className="text-lg font-mono text-gray-700">/api/authors</code>
-            </div>
-            <p className="text-gray-600 mb-3">Create a new author</p>
-
-            <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto mb-3">
-              <p className="text-gray-400 text-xs mb-2">Request Body:</p>
-              <pre className="text-yellow-400 text-sm">{`{
-  "id": "auth008",
-  "name": "New Author",
-  "biography": "Biography text",
-  "birthYear": 1980
-}`}</pre>
-            </div>
-
-            <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-              <p className="text-gray-400 text-xs mb-2">Response (201 Created):</p>
-              <pre className="text-green-400 text-sm">{`{
-  "id": "auth008",
-  "name": "New Author",
-  "biography": "Biography text",
-  "birthYear": 1980
-}`}</pre>
-            </div>
-
-            <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <p className="text-blue-900 font-semibold text-sm mb-2">💻 cURL Example:</p>
-              <pre className="text-sm text-gray-800 overflow-x-auto">{`curl -X POST https://digital-library-api.vercel.app/api/authors \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "id": "auth008",
-    "name": "New Author",
-    "biography": "Biography text",
-    "birthYear": 1980
-  }'`}</pre>
-            </div>
-          </div>
-
-          {/* PUT author */}
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-3">
-              <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded font-semibold text-sm">PUT</span>
-              <code className="text-lg font-mono text-gray-700">/api/authors/:id</code>
-            </div>
-            <p className="text-gray-600 mb-3">Update an existing author</p>
-
-            <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-              <p className="text-gray-400 text-xs mb-2">Request Body:</p>
-              <pre className="text-yellow-400 text-sm">{`{
-  "name": "Updated Name",
-  "biography": "Updated biography",
-  "birthYear": 1980
-}`}</pre>
-            </div>
-          </div>
-
-          {/* DELETE author */}
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-3">
-              <span className="bg-red-100 text-red-800 px-3 py-1 rounded font-semibold text-sm">DELETE</span>
-              <code className="text-lg font-mono text-gray-700">/api/authors/:id</code>
-            </div>
-            <p className="text-gray-600 mb-3">Delete an author from the library</p>
-
-            <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-              <p className="text-gray-400 text-xs mb-2">Response (200 OK):</p>
-              <pre className="text-green-400 text-sm">{`{
-  "message": "Author deleted successfully"
-}`}</pre>
-            </div>
-          </div>
-        </section>
-
-        {/* Books Endpoints */}
-        <section className="mb-12">
-          <h2 className="text-3xl font-semibold text-gray-800 mb-6 pb-3 border-b-2 border-green-500 flex items-center gap-3">
-            <span className="text-3xl">📚</span>
-            Books Endpoints
-          </h2>
-
-          {/* GET all books */}
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-3">
-              <span className="bg-green-100 text-green-800 px-3 py-1 rounded font-semibold text-sm">GET</span>
-              <code className="text-lg font-mono text-gray-700">/api/books</code>
-            </div>
-            <p className="text-gray-600 mb-3">Get all books (optional: filter by authorId)</p>
-
-            <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto mb-3">
-              <p className="text-gray-400 text-xs mb-2">Query Parameters (optional):</p>
-              <pre className="text-yellow-400 text-sm">{`?authorId=auth001  // Filter by author`}</pre>
-            </div>
-
-            <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-              <p className="text-gray-400 text-xs mb-2">Response (200 OK):</p>
-              <pre className="text-green-400 text-sm">{`[
-  {
-    "id": "book001",
-    "title": "Harry Potter and the Philosopher's Stone",
-    "authorId": "auth001",
-    "publishedYear": 1997,
-    "category": "Fantasy",
-    "isAvailable": true
-  }
-]`}</pre>
-            </div>
-
-            <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <p className="text-blue-900 font-semibold text-sm mb-2">💻 cURL Example:</p>
-              <pre className="text-sm text-gray-800 overflow-x-auto">{`# Get all books
-curl -X GET https://digital-library-api.vercel.app/api/books
-
-# Get books by author
-curl -X GET "https://digital-library-api.vercel.app/api/books?authorId=auth001"`}</pre>
-            </div>
-          </div>
-
-          {/* GET book by ID */}
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-3">
-              <span className="bg-green-100 text-green-800 px-3 py-1 rounded font-semibold text-sm">GET</span>
-              <code className="text-lg font-mono text-gray-700">/api/books/:id</code>
-            </div>
-            <p className="text-gray-600 mb-3">Get a specific book by ID</p>
-
-            <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-              <p className="text-gray-400 text-xs mb-2">Response (200 OK):</p>
-              <pre className="text-green-400 text-sm">{`{
-  "id": "book001",
-  "title": "Harry Potter and the Philosopher's Stone",
-  "authorId": "auth001",
-  "publishedYear": 1997,
-  "category": "Fantasy",
-  "isAvailable": true
-}`}</pre>
-            </div>
-          </div>
-
-          {/* POST book */}
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-3">
-              <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded font-semibold text-sm">POST</span>
-              <code className="text-lg font-mono text-gray-700">/api/books</code>
-            </div>
-            <p className="text-gray-600 mb-3">Add a new book to the library</p>
-
-            <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto mb-3">
-              <p className="text-gray-400 text-xs mb-2">Request Body:</p>
-              <pre className="text-yellow-400 text-sm">{`{
-  "id": "book009",
-  "title": "New Book",
-  "authorId": "auth001",
-  "publishedYear": 2024,
-  "category": "Fiction",
-  "isbn": "978-1234567890",
-  "pageCount": 350,
-  "publisher": "Publisher Name"
-}`}</pre>
-            </div>
-
-            <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-              <p className="text-gray-400 text-xs mb-2">Response (201 Created):</p>
-              <pre className="text-green-400 text-sm">{`{
-  "id": "book009",
-  "title": "New Book",
-  "authorId": "auth001",
-  "publishedYear": 2024,
-  "category": "Fiction",
-  "isAvailable": true
-}`}</pre>
-            </div>
-
-            <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <p className="text-blue-900 font-semibold text-sm mb-2">💻 cURL Example:</p>
-              <pre className="text-sm text-gray-800 overflow-x-auto">{`curl -X POST https://digital-library-api.vercel.app/api/books \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "id": "book009",
-    "title": "New Book",
-    "authorId": "auth001",
-    "publishedYear": 2024,
-    "category": "Fiction",
-    "isbn": "978-1234567890",
-    "pageCount": 350,
-    "publisher": "Publisher Name"
-  }'`}</pre>
-            </div>
-          </div>
-
-          {/* PUT book */}
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-3">
-              <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded font-semibold text-sm">PUT</span>
-              <code className="text-lg font-mono text-gray-700">/api/books/:id</code>
-            </div>
-            <p className="text-gray-600 mb-3">Update book information</p>
-
-            <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-              <p className="text-gray-400 text-xs mb-2">Request Body:</p>
-              <pre className="text-yellow-400 text-sm">{`{
-  "title": "Updated Title",
-  "isAvailable": false
-}`}</pre>
-            </div>
-          </div>
-
-          {/* DELETE book */}
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-3">
-              <span className="bg-red-100 text-red-800 px-3 py-1 rounded font-semibold text-sm">DELETE</span>
-              <code className="text-lg font-mono text-gray-700">/api/books/:id</code>
-            </div>
-            <p className="text-gray-600 mb-3">Remove a book from the library</p>
-
-            <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-              <p className="text-gray-400 text-xs mb-2">Response (200 OK):</p>
-              <pre className="text-green-400 text-sm">{`{
-  "message": "Book deleted successfully"
-}`}</pre>
-            </div>
-          </div>
-        </section>
-
-        {/* Members Endpoints */}
-        <section className="mb-12">
-          <h2 className="text-3xl font-semibold text-gray-800 mb-6 pb-3 border-b-2 border-purple-500 flex items-center gap-3">
-            <span className="text-3xl">👥</span>
-            Members Endpoints
-          </h2>
-
-          {/* GET all members */}
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-3">
-              <span className="bg-green-100 text-green-800 px-3 py-1 rounded font-semibold text-sm">GET</span>
-              <code className="text-lg font-mono text-gray-700">/api/members</code>
-            </div>
-            <p className="text-gray-600 mb-3">Get all library members</p>
-
-            <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-              <p className="text-gray-400 text-xs mb-2">Response (200 OK):</p>
-              <pre className="text-green-400 text-sm">{`[
-  {
-    "id": "M001",
-    "name": "Alice Johnson",
-    "email": "alice@example.com",
-    "phone": "+974-1234-5678",
-    "memberType": "student"
-  }
-]`}</pre>
-            </div>
-
-            <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <p className="text-blue-900 font-semibold text-sm mb-2">💻 cURL Example:</p>
-              <pre className="text-sm text-gray-800 overflow-x-auto">{`curl -X GET https://digital-library-api.vercel.app/api/members`}</pre>
-            </div>
-          </div>
-
-          {/* GET member by ID */}
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-3">
-              <span className="bg-green-100 text-green-800 px-3 py-1 rounded font-semibold text-sm">GET</span>
-              <code className="text-lg font-mono text-gray-700">/api/members/:id</code>
-            </div>
-            <p className="text-gray-600 mb-3">Get a specific member by ID (includes transaction history)</p>
-
-            <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-              <p className="text-gray-400 text-xs mb-2">Response (200 OK):</p>
-              <pre className="text-green-400 text-sm">{`{
-  "id": "M001",
-  "name": "Alice Johnson",
-  "email": "alice@example.com",
-  "phone": "+974-1234-5678",
-  "memberType": "student",
-  "transactions": [...]
-}`}</pre>
-            </div>
-          </div>
-
-          {/* POST member */}
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-3">
-              <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded font-semibold text-sm">POST</span>
-              <code className="text-lg font-mono text-gray-700">/api/members</code>
-            </div>
-            <p className="text-gray-600 mb-3">Register a new library member</p>
-
-            <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto mb-3">
-              <p className="text-gray-400 text-xs mb-2">Request Body:</p>
-              <pre className="text-yellow-400 text-sm">{`{
-  "id": "M007",
-  "name": "New Member",
-  "email": "newmember@example.com",
-  "phone": "+974-9999-9999",
-  "memberType": "student"
-}`}</pre>
-            </div>
-
-            <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-              <p className="text-gray-400 text-xs mb-2">Response (201 Created):</p>
-              <pre className="text-green-400 text-sm">{`{
-  "id": "M007",
-  "name": "New Member",
-  "email": "newmember@example.com",
-  "phone": "+974-9999-9999",
-  "memberType": "student"
-}`}</pre>
-            </div>
-
-            <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <p className="text-blue-900 font-semibold text-sm mb-2">💻 cURL Example:</p>
-              <pre className="text-sm text-gray-800 overflow-x-auto">{`curl -X POST https://digital-library-api.vercel.app/api/members \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "id": "M007",
-    "name": "New Member",
-    "email": "newmember@example.com",
-    "phone": "+974-9999-9999",
-    "memberType": "student"
-  }'`}</pre>
-            </div>
-          </div>
-
-          {/* PUT member */}
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-3">
-              <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded font-semibold text-sm">PUT</span>
-              <code className="text-lg font-mono text-gray-700">/api/members/:id</code>
-            </div>
-            <p className="text-gray-600 mb-3">Update member information</p>
-
-            <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-              <p className="text-gray-400 text-xs mb-2">Request Body:</p>
-              <pre className="text-yellow-400 text-sm">{`{
-  "name": "Updated Name",
-  "email": "updated@example.com",
-  "memberType": "faculty"
-}`}</pre>
-            </div>
-          </div>
-
-          {/* DELETE member */}
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-3">
-              <span className="bg-red-100 text-red-800 px-3 py-1 rounded font-semibold text-sm">DELETE</span>
-              <code className="text-lg font-mono text-gray-700">/api/members/:id</code>
-            </div>
-            <p className="text-gray-600 mb-3">Remove a member from the system</p>
-
-            <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-              <p className="text-gray-400 text-xs mb-2">Response (200 OK):</p>
-              <pre className="text-green-400 text-sm">{`{
-  "message": "Member deleted successfully"
-}`}</pre>
-            </div>
-          </div>
-        </section>
-
-        {/* Staff Endpoints */}
-        <section className="mb-12">
-          <h2 className="text-3xl font-semibold text-gray-800 mb-6 pb-3 border-b-2 border-orange-500 flex items-center gap-3">
-            <span className="text-3xl">👔</span>
-            Staff Endpoints
-          </h2>
-
-          {/* GET all staff */}
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-3">
-              <span className="bg-green-100 text-green-800 px-3 py-1 rounded font-semibold text-sm">GET</span>
-              <code className="text-lg font-mono text-gray-700">/api/staff</code>
-            </div>
-            <p className="text-gray-600 mb-3">Get all staff members</p>
-
-            <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-              <p className="text-gray-400 text-xs mb-2">Response (200 OK):</p>
-              <pre className="text-green-400 text-sm">{`[
-  {
-    "staffId": "S001",
-    "username": "admin",
-    "fullName": "Admin User",
-    "role": "admin"
-  }
-]`}</pre>
-            </div>
-
-            <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <p className="text-blue-900 font-semibold text-sm mb-2">💻 cURL Example:</p>
-              <pre className="text-sm text-gray-800 overflow-x-auto">{`curl -X GET https://digital-library-api.vercel.app/api/staff`}</pre>
-            </div>
-          </div>
-
-          {/* GET staff by ID */}
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-3">
-              <span className="bg-green-100 text-green-800 px-3 py-1 rounded font-semibold text-sm">GET</span>
-              <code className="text-lg font-mono text-gray-700">/api/staff/:id</code>
-            </div>
-            <p className="text-gray-600 mb-3">Get a specific staff member by ID</p>
-
-            <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-              <p className="text-gray-400 text-xs mb-2">Response (200 OK):</p>
-              <pre className="text-green-400 text-sm">{`{
-  "staffId": "S001",
-  "username": "admin",
-  "fullName": "Admin User",
-  "role": "admin"
-}`}</pre>
-            </div>
-          </div>
-
-          {/* POST staff */}
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-3">
-              <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded font-semibold text-sm">POST</span>
-              <code className="text-lg font-mono text-gray-700">/api/staff</code>
-            </div>
-            <p className="text-gray-600 mb-3">Add a new staff member</p>
-
-            <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto mb-3">
-              <p className="text-gray-400 text-xs mb-2">Request Body:</p>
-              <pre className="text-yellow-400 text-sm">{`{
-  "staffId": "S004",
-  "username": "newstaff",
-  "password": "password123",
-  "fullName": "New Staff",
-  "role": "staff"
-}`}</pre>
-            </div>
-
-            <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-              <p className="text-gray-400 text-xs mb-2">Response (201 Created):</p>
-              <pre className="text-green-400 text-sm">{`{
-  "staffId": "S004",
-  "username": "newstaff",
-  "fullName": "New Staff",
-  "role": "staff"
-}`}</pre>
-            </div>
-
-            <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <p className="text-blue-900 font-semibold text-sm mb-2">💻 cURL Example:</p>
-              <pre className="text-sm text-gray-800 overflow-x-auto">{`curl -X POST https://digital-library-api.vercel.app/api/staff \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "staffId": "S004",
-    "username": "newstaff",
-    "password": "password123",
-    "fullName": "New Staff",
-    "role": "staff"
-  }'`}</pre>
-            </div>
-          </div>
-
-          {/* PUT staff */}
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-3">
-              <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded font-semibold text-sm">PUT</span>
-              <code className="text-lg font-mono text-gray-700">/api/staff/:id</code>
-            </div>
-            <p className="text-gray-600 mb-3">Update staff member information</p>
-
-            <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-              <p className="text-gray-400 text-xs mb-2">Request Body:</p>
-              <pre className="text-yellow-400 text-sm">{`{
-  "username": "updatedusername",
-  "fullName": "Updated Name",
-  "role": "librarian"
-}`}</pre>
-            </div>
-          </div>
-
-          {/* DELETE staff */}
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-3">
-              <span className="bg-red-100 text-red-800 px-3 py-1 rounded font-semibold text-sm">DELETE</span>
-              <code className="text-lg font-mono text-gray-700">/api/staff/:id</code>
-            </div>
-            <p className="text-gray-600 mb-3">Remove a staff member</p>
-
-            <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-              <p className="text-gray-400 text-xs mb-2">Response (200 OK):</p>
-              <pre className="text-green-400 text-sm">{`{
-  "message": "Staff deleted successfully"
-}`}</pre>
-            </div>
-          </div>
-        </section>
-
-        {/* Transactions Endpoints */}
-        <section className="mb-12">
-          <h2 className="text-3xl font-semibold text-gray-800 mb-6 pb-3 border-b-2 border-pink-500 flex items-center gap-3">
-            <span className="text-3xl">🔄</span>
-            Transactions Endpoints
-          </h2>
-
-          {/* GET all transactions */}
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-3">
-              <span className="bg-green-100 text-green-800 px-3 py-1 rounded font-semibold text-sm">GET</span>
-              <code className="text-lg font-mono text-gray-700">/api/transactions</code>
-            </div>
-            <p className="text-gray-600 mb-3">Get all transactions (supports filtering by memberId or bookId)</p>
-
-            <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto mb-3">
-              <p className="text-gray-400 text-xs mb-2">Query Parameters (optional):</p>
-              <pre className="text-yellow-400 text-sm">{`?memberId=M001  // Filter by member
-?bookId=book001  // Filter by book`}</pre>
-            </div>
-
-            <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-              <p className="text-gray-400 text-xs mb-2">Response (200 OK):</p>
-              <pre className="text-green-400 text-sm">{`[
-  {
-    "id": "T001",
-    "memberId": "M001",
-    "bookId": "book001",
-    "borrowDate": "2024-01-15T10:00:00Z",
-    "dueDate": "2024-02-15T10:00:00Z",
-    "isReturned": false
-  }
-]`}</pre>
-            </div>
-
-            <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <p className="text-blue-900 font-semibold text-sm mb-2">💻 cURL Example:</p>
-              <pre className="text-sm text-gray-800 overflow-x-auto">{`# Get all transactions
-curl -X GET https://digital-library-api.vercel.app/api/transactions
-
-# Filter by member
-curl -X GET "https://digital-library-api.vercel.app/api/transactions?memberId=M001"
-
-# Filter by book
-curl -X GET "https://digital-library-api.vercel.app/api/transactions?bookId=book001"`}</pre>
-            </div>
-          </div>
-
-          {/* GET transaction by ID */}
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-3">
-              <span className="bg-green-100 text-green-800 px-3 py-1 rounded font-semibold text-sm">GET</span>
-              <code className="text-lg font-mono text-gray-700">/api/transactions/:id</code>
-            </div>
-            <p className="text-gray-600 mb-3">Get a specific transaction by ID</p>
-
-            <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-              <p className="text-gray-400 text-xs mb-2">Response (200 OK):</p>
-              <pre className="text-green-400 text-sm">{`{
-  "id": "T001",
-  "memberId": "M001",
-  "bookId": "book001",
-  "borrowDate": "2024-01-15T10:00:00Z",
-  "dueDate": "2024-02-15T10:00:00Z",
-  "returnDate": null,
-  "isReturned": false
-}`}</pre>
-            </div>
-          </div>
-
-          {/* POST transaction */}
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-3">
-              <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded font-semibold text-sm">POST</span>
-              <code className="text-lg font-mono text-gray-700">/api/transactions</code>
-            </div>
-            <p className="text-gray-600 mb-3">Create a new book borrowing transaction</p>
-
-            <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto mb-3">
-              <p className="text-gray-400 text-xs mb-2">Request Body:</p>
-              <pre className="text-yellow-400 text-sm">{`{
-  "id": "T009",
-  "memberId": "M001",
-  "bookId": "book002",
-  "borrowDate": "2024-01-20T10:00:00Z",
-  "dueDate": "2024-02-20T10:00:00Z"
-}`}</pre>
-            </div>
-
-            <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-              <p className="text-gray-400 text-xs mb-2">Response (201 Created):</p>
-              <pre className="text-green-400 text-sm">{`{
-  "id": "T009",
-  "memberId": "M001",
-  "bookId": "book002",
-  "borrowDate": "2024-01-20T10:00:00Z",
-  "dueDate": "2024-02-20T10:00:00Z",
-  "isReturned": false
-}`}</pre>
-            </div>
-
-            <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <p className="text-blue-900 font-semibold text-sm mb-2">💻 cURL Example:</p>
-              <pre className="text-sm text-gray-800 overflow-x-auto">{`curl -X POST https://digital-library-api.vercel.app/api/transactions \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "id": "T009",
-    "memberId": "M001",
-    "bookId": "book002",
-    "borrowDate": "2024-01-20T10:00:00Z",
-    "dueDate": "2024-02-20T10:00:00Z"
-  }'`}</pre>
-            </div>
-          </div>
-
-          {/* PUT transaction */}
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-3">
-              <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded font-semibold text-sm">PUT</span>
-              <code className="text-lg font-mono text-gray-700">/api/transactions/:id</code>
-            </div>
-            <p className="text-gray-600 mb-3">Update transaction (e.g., mark book as returned)</p>
-
-            <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-              <p className="text-gray-400 text-xs mb-2">Request Body:</p>
-              <pre className="text-yellow-400 text-sm">{`{
-  "isReturned": true,
-  "returnDate": "2024-02-10T15:30:00Z"
-}`}</pre>
-            </div>
-          </div>
-
-          {/* DELETE transaction */}
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-3">
-              <span className="bg-red-100 text-red-800 px-3 py-1 rounded font-semibold text-sm">DELETE</span>
-              <code className="text-lg font-mono text-gray-700">/api/transactions/:id</code>
-            </div>
-            <p className="text-gray-600 mb-3">Delete a transaction record</p>
-
-            <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-              <p className="text-gray-400 text-xs mb-2">Response (200 OK):</p>
-              <pre className="text-green-400 text-sm">{`{
-  "message": "Transaction deleted successfully"
-}`}</pre>
-            </div>
-          </div>
-        </section>
-
-        {/* Error Responses */}
-        <section className="mb-12">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-6 flex items-center gap-2">
-            <span className="text-2xl">⚠️</span>
-            Error Responses
-          </h2>
-
-          <div className="space-y-4">
-            <div className="bg-gradient-to-r from-red-50 to-red-100 border-2 border-red-300 rounded-xl p-5 hover:shadow-md transition-shadow">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="bg-red-600 text-white px-3 py-1 rounded-lg font-bold text-xs">400</span>
-                <p className="font-bold text-red-900">Bad Request</p>
-              </div>
-              <pre className="text-sm text-gray-800 bg-white p-3 rounded-lg">{`{ "error": "Invalid request data" }`}</pre>
-            </div>
-
-            <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 border-2 border-yellow-300 rounded-xl p-5 hover:shadow-md transition-shadow">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="bg-yellow-600 text-white px-3 py-1 rounded-lg font-bold text-xs">404</span>
-                <p className="font-bold text-yellow-900">Not Found</p>
-              </div>
-              <pre className="text-sm text-gray-800 bg-white p-3 rounded-lg">{`{ "error": "Resource not found" }`}</pre>
-            </div>
-
-            <div className="bg-gradient-to-r from-orange-50 to-orange-100 border-2 border-orange-300 rounded-xl p-5 hover:shadow-md transition-shadow">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="bg-orange-600 text-white px-3 py-1 rounded-lg font-bold text-xs">409</span>
-                <p className="font-bold text-orange-900">Conflict</p>
-              </div>
-              <pre className="text-sm text-gray-800 bg-white p-3 rounded-lg">{`{ "error": "Resource already exists" }`}</pre>
-            </div>
-
-            <div className="bg-gradient-to-r from-red-50 to-red-100 border-2 border-red-300 rounded-xl p-5 hover:shadow-md transition-shadow">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="bg-red-700 text-white px-3 py-1 rounded-lg font-bold text-xs">500</span>
-                <p className="font-bold text-red-900">Internal Server Error</p>
-              </div>
-              <pre className="text-sm text-gray-800 bg-white p-3 rounded-lg">{`{ "error": "Failed to process request" }`}</pre>
-            </div>
-          </div>
-        </section>
-
-        {/* Footer */}
-        <footer className="mt-16 pt-8 border-t-2 border-gray-200 text-center">
-          <div className="mb-4">
-            <p className="text-gray-700 font-semibold text-base mb-2">Digital Library API</p>
-            <p className="text-gray-600 text-sm">
-              Built with Next.js 15 • PostgreSQL • Prisma ORM
+          {/* Member Management */}
+          <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+            <div className="text-5xl mb-4">👥</div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-3">Member Management</h3>
+            <p className="text-gray-600 mb-4">
+              Register and manage library members, track their borrowing history.
             </p>
+            <Link
+              href="/members"
+              className="inline-block bg-purple-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-purple-600 transition"
+            >
+              Manage Members →
+            </Link>
           </div>
-          <div className="flex justify-center gap-2 flex-wrap text-xs text-gray-500">
-            <span className="bg-gray-100 px-3 py-1 rounded-full">CMPS312</span>
-            <span>•</span>
-            <span className="bg-gray-100 px-3 py-1 rounded-full">Assignment 4</span>
-            <span>•</span>
-            <span className="bg-gray-100 px-3 py-1 rounded-full">Qatar University</span>
+
+          {/* Transactions */}
+          <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+            <div className="text-5xl mb-4">🔄</div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-3">Transactions</h3>
+            <p className="text-gray-600 mb-4">
+              Handle book checkouts, returns, and track all library transactions.
+            </p>
+            <Link
+              href="/transactions"
+              className="inline-block bg-orange-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-orange-600 transition"
+            >
+              View Transactions →
+            </Link>
           </div>
-        </footer>
+        </div>
+
+        {/* API Documentation Link */}
+        <div className="mt-12 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl shadow-2xl p-8 text-white text-center">
+          <h2 className="text-3xl font-bold mb-4">Developer API</h2>
+          <p className="text-lg mb-6">
+            Access our RESTful API documentation to integrate with your applications
+          </p>
+          <Link
+            href="/docs"
+            className="inline-block bg-white text-indigo-600 px-8 py-3 rounded-lg font-bold text-lg hover:bg-gray-100 transition shadow-lg"
+          >
+            View API Documentation →
+          </Link>
+        </div>
       </div>
     </main>
   );
